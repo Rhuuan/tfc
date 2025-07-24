@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\FaseResource\Pages;
 
 use App\Filament\Resources\FaseResource;
-use Filament\Resources\Pages\Page;
+use Filament\Actions;
+use Filament\Resources\Pages\ViewRecord;
 
-class ViewFase extends Page
+class ViewFase extends ViewRecord
 {
     protected static string $resource = FaseResource::class;
-
-    protected static string $view = 'filament.resources.fase-resource.pages.view-fase';
 }

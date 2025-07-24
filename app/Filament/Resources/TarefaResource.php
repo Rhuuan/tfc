@@ -80,7 +80,6 @@ class TarefaResource extends Resource
             'index' => Pages\ListTarefas::route('/'),
             'create' => Pages\CreateTarefa::route('/criar'),
             'edit' => Pages\EditTarefa::route('/{record}/editar'),
-            // 'view' removido por enquanto, se não existir
         ];
     }
 }

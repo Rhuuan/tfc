@@ -87,7 +87,7 @@ class MetodoFerramentaResource extends Resource
             'index' => Pages\ListMetodoFerramentas::route('/'),
             'create' => Pages\CreateMetodoFerramenta::route('/criar'),
             'edit' => Pages\EditMetodoFerramenta::route('/{record}/editar'),
-            'view' => Pages\ViewMetodoFerramenta::route('/{record}'),
+            //'view' => Pages\ViewMetodoFerramenta::route('/{record}'),
         ];
     }
 }

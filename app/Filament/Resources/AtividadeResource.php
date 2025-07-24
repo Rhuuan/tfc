@@ -69,7 +69,7 @@ class AtividadeResource extends Resource
             'index' => Pages\ListAtividades::route('/'),
             'create' => Pages\CreateAtividade::route('/criar'),
             'edit' => Pages\EditAtividade::route('/{record}/editar'),
-            'view' => Pages\ViewAtividade::route('/{record}'),
+            //'view' => Pages\ViewAtividade::route('/{record}'),
         ];
     }
 }

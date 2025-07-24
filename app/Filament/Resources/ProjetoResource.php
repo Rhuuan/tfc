@@ -99,7 +99,7 @@ class ProjetoResource extends Resource
             'index' => Pages\ListProjetos::route('/'),
             'create' => Pages\CreateProjeto::route('/criar'),
             'edit' => Pages\EditProjeto::route('/{record}/editar'),
-            'view' => Pages\ViewProjeto::route('/{record}'),
+            //'view' => Pages\ViewProjeto::route('/{record}'),
         ];
     }
 }

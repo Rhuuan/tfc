@@ -5,10 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\FaseResource\Pages;
 use App\Models\Fase;
 use Filament\Forms;
-use Filament\Tables;
-use Filament\Forms\Form; // <-- CORRIGIDO
-use Filament\Tables\Table; // <-- CORRIGIDO
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
 
 class FaseResource extends Resource
 {
@@ -16,8 +16,7 @@ class FaseResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    // Ícone corrigido para a versão v2 do Heroicons
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list'; // <-- CORRIGIDO
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Fases';
     protected static ?string $pluralLabel = 'Fases';
 
@@ -32,11 +31,10 @@ class FaseResource extends Resource
                 ->required()
                 ->label('Data'),
 
-            // Este campo requer que a relação "atividades" esteja definida no seu Model
             Forms\Components\Select::make('atividades')
                 ->relationship('atividades', 'nome')
-                ->multiple() // Use multiple() para MultiSelect
-                ->preload()  // Preload melhora a performance
+                ->multiple()
+                ->preload()
                 ->label('Atividades'),
         ]);
     }
@@ -45,13 +43,20 @@ class FaseResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nome')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('data')->date()->sortable(),
+                Tables\Columns\TextColumn::make('nome')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('data')
+                    ->date()
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('atividades_count')
                     ->counts('atividades')
                     ->label('Nº de Atividades'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(), // ✅ Adicionado botão de visualização
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
@@ -69,6 +74,7 @@ class FaseResource extends Resource
             'index' => Pages\ListFases::route('/'),
             'create' => Pages\CreateFase::route('/criar'),
             'edit' => Pages\EditFase::route('/{record}/editar'),
+            //'view' => Pages\ViewFase::route('/{record}'), // ✅ Rota para página de visualização
         ];
     }
 }

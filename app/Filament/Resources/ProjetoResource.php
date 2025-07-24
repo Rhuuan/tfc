@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Tables\Columns\TagsColumn;
 
 class ProjetoResource extends Resource
 {
@@ -16,7 +17,7 @@ class ProjetoResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationIcon = 'heroicon-o-briefcase'; // ícone projeto
+    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?string $navigationLabel = 'Projetos';
 
@@ -35,22 +36,30 @@ class ProjetoResource extends Resource
             Forms\Components\MultiSelect::make('fases')
                 ->relationship('fases', 'nome')
                 ->label('Fases')
-                ->required(),
+                ->required()
+                ->preload()
+                ->searchable(),
 
             Forms\Components\MultiSelect::make('atividades')
                 ->relationship('atividades', 'nome')
                 ->label('Atividades')
-                ->required(),
+                ->required()
+                ->preload()
+                ->searchable(),
 
             Forms\Components\MultiSelect::make('tarefas')
                 ->relationship('tarefas', 'nome')
                 ->label('Tarefas')
-                ->required(),
+                ->required()
+                ->preload()
+                ->searchable(),
 
             Forms\Components\MultiSelect::make('metodoFerramentas')
                 ->relationship('metodoFerramentas', 'nome')
                 ->label('Métodos e Ferramentas')
-                ->required(),
+                ->required()
+                ->preload()
+                ->searchable(),
         ]);
     }
 
@@ -58,9 +67,18 @@ class ProjetoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nome')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('descricao')->limit(50),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Criado em'),
+                Tables\Columns\TextColumn::make('nome')
+                    ->label('Nome')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('descricao')
+                    ->label('Descrição')
+                    ->limit(50),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Criado em')
+                    ->dateTime(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

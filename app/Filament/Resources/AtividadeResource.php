@@ -36,8 +36,8 @@ class AtividadeResource extends Resource
 
             Forms\Components\Select::make('tarefa_id')
                 ->relationship('tarefa', 'nome')
-                ->label('Tarefa')
-                ->nullable(),
+                ->required() 
+                ->label('Tarefa'),
         ]);
     }
 

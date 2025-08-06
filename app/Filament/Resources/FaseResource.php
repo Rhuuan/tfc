@@ -74,7 +74,7 @@ class FaseResource extends Resource
             'index' => Pages\ListFases::route('/'),
             'create' => Pages\CreateFase::route('/criar'),
             'edit' => Pages\EditFase::route('/{record}/editar'),
-            //'view' => Pages\ViewFase::route('/{record}'), // ✅ Rota para página de visualização
+            'view' => Pages\ViewFase::route('/{record}'), 
         ];
     }
 }

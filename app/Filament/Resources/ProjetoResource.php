@@ -9,7 +9,6 @@ use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Tables\Columns\TagsColumn;
 
 class ProjetoResource extends Resource
 {
@@ -99,7 +98,7 @@ class ProjetoResource extends Resource
             'index' => Pages\ListProjetos::route('/'),
             'create' => Pages\CreateProjeto::route('/criar'),
             'edit' => Pages\EditProjeto::route('/{record}/editar'),
-            //'view' => Pages\ViewProjeto::route('/{record}'),
+            'view' => Pages\ViewProjeto::route('/{record}'),
         ];
     }
 }

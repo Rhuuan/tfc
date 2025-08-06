@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ProjetoResource\Pages;
 
 use App\Filament\Resources\ProjetoResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Actions\Action;
 
@@ -17,9 +16,10 @@ class ViewProjeto extends ViewRecord
             // Botão Gerar Recomendação já existente
             Action::make('gerarRecomendacao')
                 ->label('Gerar Recomendação')
-                ->icon('heroicon-o-light-bulb')
                 ->color('warning')
-                ->action(fn () => $this->gerarRecomendacao()),
+                ->url(route('filament.admin.resources.projetos.gerarRecomendacao', ['record' => $this->record->id]))
+                ->icon('heroicon-o-light-bulb')
+                ->outlined(),
 
             // ✅ Novo botão: Voltar para Início
             Action::make('voltar')

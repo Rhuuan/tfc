@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\ProjetoResource\Pages;
 
 use App\Filament\Resources\ProjetoResource;
-use App\Models\Projeto;
-use Filament\Resources\Pages\Page;
 use Filament\Actions\Action;
+use Filament\Resources\Pages\Page;
+use Filament\Pages\Actions\ButtonAction;
 
 class GerarRecomendacaoProjeto extends Page
 {
@@ -13,21 +13,22 @@ class GerarRecomendacaoProjeto extends Page
 
     protected static string $view = 'filament.resources.projeto-resource.pages.gerar-recomendacao-projeto';
 
-    public Projeto $record;
-
-    protected static ?string $title = 'Gerar Recomendação';
+    public $record;
 
     public function mount($record): void
     {
-        $this->record = Projeto::findOrFail($record);
+        $this->record = ProjetoResource::getModel()::findOrFail($record);
     }
 
-    protected function getHeaderActions(): array
+    protected function getActions(): array
     {
         return [
-            Action::make('voltar')
+            Action::make('Voltar')
                 ->label('Voltar')
-                ->url(route('filament.admin.resources.projetos.view', ['record' => $this->record->id]))
+                ->button()
+                ->color('gray')
+                ->url($this->getResource()::getUrl())
+                ->icon('heroicon-o-arrow-left'),
         ];
     }
 }

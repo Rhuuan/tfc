@@ -18,7 +18,7 @@ class TarefaResource extends Resource
     protected static ?int $navigationSort = 4;
 
     // Ícone válido do conjunto heroicons para tarefas/lista
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?string $navigationIcon = 'heroicon-o-check-badge';
     protected static ?string $navigationLabel = 'Tarefas';
     protected static ?string $pluralLabel = 'Tarefas';
 

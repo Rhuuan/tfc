@@ -22,6 +22,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
+            ->spa()
             ->default()
             ->id('admin')
             ->path('admin')
@@ -29,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->registration()
             ->passwordReset()
             ->emailVerification()
-            ->profile()
+            ->profile(isSimple: false)
             ->colors([
                 'primary' => Color::Amber,
             ])

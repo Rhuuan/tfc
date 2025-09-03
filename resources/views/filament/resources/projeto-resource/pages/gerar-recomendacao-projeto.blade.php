@@ -1,7 +1,7 @@
 <x-filament::page>
     <div class="space-y-10 max-w-6xl mx-auto px-6 md:px-8">
 
-        {{-- Bloco de informações do projeto (padronizado) --}}
+        {{-- Bloco de informações do projeto --}}
         <x-filament::section style="margin-bottom: 20px;">
             <x-slot name="heading">
                 <div class="flex items-center gap-2">
@@ -12,15 +12,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-800 leading-relaxed">
                 <div>
-                    <span class="font-semibold">Projeto:</span> {{ $record['nome'] ?? '-' }}
+                    <span class="font-semibold">Projeto:</span> {{ $dadosProjeto['nome'] ?? '-' }}
                 </div>
 
                 <div>
                     <span class="font-semibold">Criado em:</span>
-                    {{ $record['created_at'] ? \Carbon\Carbon::parse($record['created_at'])->format('d/m/Y H:i') : '-' }}
+                    {{ isset($dadosProjeto['created_at']) ? \Carbon\Carbon::parse($dadosProjeto['created_at'])->format('d/m/Y H:i') : '-' }}
                 </div>
+
                 <div class="md:col-span-2">
-                    <span class="font-semibold">Descrição:</span> {{ $record['descricao'] ?? '-' }}
+                    <span class="font-semibold">Descrição:</span> {{ $dadosProjeto['descricao'] ?? '-' }}
                 </div>
             </div>
         </x-filament::section>
@@ -37,9 +38,10 @@
                     </div>
                 </x-slot>
 
-                @if (!empty($record['fases']))
+                @php $fases = $dadosProjeto['fases'] ?? []; @endphp
+                @if (!empty($fases))
                     <ul class="divide-y divide-gray-200 text-sm text-gray-800">
-                        @foreach ($record['fases'] as $fase)
+                        @foreach ($fases as $fase)
                             <li class="py-2 rounded-md transition">
                                 <span class="font-semibold">{{ $fase['nome'] ?? '-' }}</span>
                                 <div class="text-xs text-gray-500">{{ $fase['descricao'] ?? '' }}</div>
@@ -60,9 +62,10 @@
                     </div>
                 </x-slot>
 
-                @if (!empty($record['atividades']))
+                @php $atividades = $dadosProjeto['atividades'] ?? []; @endphp
+                @if (!empty($atividades))
                     <ul class="divide-y divide-gray-200 text-sm text-gray-800">
-                        @foreach ($record['atividades'] as $atividade)
+                        @foreach ($atividades as $atividade)
                             <li class="py-2 rounded-md transition">
                                 <span class="font-semibold">{{ $atividade['nome'] ?? '-' }}</span>
                                 <div class="text-xs text-gray-500">{{ $atividade['descricao'] ?? '' }}</div>
@@ -83,9 +86,10 @@
                     </div>
                 </x-slot>
 
-                @if (!empty($record['tarefas']))
+                @php $tarefas = $dadosProjeto['tarefas'] ?? []; @endphp
+                @if (!empty($tarefas))
                     <ul class="divide-y divide-gray-200 text-sm text-gray-800">
-                        @foreach ($record['tarefas'] as $tarefa)
+                        @foreach ($tarefas as $tarefa)
                             <li class="py-2 rounded-md transition">
                                 <span class="font-semibold">{{ $tarefa['nome'] ?? '-' }}</span>
                                 <div class="text-xs text-gray-500">{{ $tarefa['descricao'] ?? '' }}</div>
@@ -98,7 +102,7 @@
             </x-filament::section>
 
             {{-- Métodos/Ferramentas --}}
-            <x-filament::section >
+            <x-filament::section>
                 <x-slot name="heading">
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-wrench-screwdriver class="w-5 h-5 text-primary-500" />
@@ -106,13 +110,10 @@
                     </div>
                 </x-slot>
 
-                @php
-                    $metodoFerramentas = $record['metodo_ferramentas'] ?? [];
-                @endphp
-
-                @if (!empty($metodoFerramentas))
+                @php $metodos = $dadosProjeto['metodo_ferramentas'] ?? []; @endphp
+                @if (!empty($metodos))
                     <ul class="divide-y divide-gray-200 text-sm text-gray-800">
-                        @foreach ($metodoFerramentas as $mf)
+                        @foreach ($metodos as $mf)
                             <li class="py-2 rounded-md transition">
                                 <span class="font-semibold">{{ $mf['nome'] ?? '-' }}</span>
                                 <div class="text-xs text-gray-500">{{ $mf['descricao'] ?? '' }}</div>
@@ -127,8 +128,8 @@
 
         {{-- Instruções e título --}}
         <div class="space-y-3 mt-14" style="margin-top: 20px;">
-            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <x-heroicon-o-sparkles class="w-6 h-6 text-primary-500" />
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2"">
+                <class="w-6 h-6 text-primary-500" />
                 Gerar Recomendação
             </h1>
             <p class="text-sm text-gray-600 leading-relaxed">

@@ -4,11 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FaseResource\Pages;
 use App\Models\Fase;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class FaseResource extends Resource
 {
@@ -56,7 +58,7 @@ class FaseResource extends Resource
                     ->label('Nº de Atividades'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(), // ✅ Adicionado botão de visualização
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
@@ -68,13 +70,31 @@ class FaseResource extends Resource
             ]);
     }
 
+    /**
+     * 🔹 Sempre salvar o registro vinculado ao usuário logado
+     */
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['user_id'] = Filament::auth()->id();
+        return $data;
+    }
+
+    /**
+     * 🔹 Só listar registros do usuário logado
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('user_id', Filament::auth()->id());
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListFases::route('/'),
             'create' => Pages\CreateFase::route('/criar'),
             'edit' => Pages\EditFase::route('/{record}/editar'),
-            'view' => Pages\ViewFase::route('/{record}'), 
+            'view' => Pages\ViewFase::route('/{record}'),
         ];
     }
 }

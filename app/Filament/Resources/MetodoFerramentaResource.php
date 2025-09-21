@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Facades\Filament;
 
 class MetodoFerramentaResource extends Resource
 {
@@ -46,9 +48,11 @@ class MetodoFerramentaResource extends Resource
                 ->label('Descrição')
                 ->rows(4)
                 ->placeholder('Descreva brevemente a utilidade ou funcionamento'),
+
+            // Campo oculto para gravar user_id automaticamente
+            Forms\Components\Hidden::make('user_id'),
         ]);
     }
-
 
     public static function table(Table $table): Table
     {
@@ -80,6 +84,25 @@ class MetodoFerramentaResource extends Resource
             ]);
     }
 
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        // usar o guard do Filament
+        $data['user_id'] = Filament::auth()->id();
+        return $data;
+    }
+
+    // opcional, para o update também
+    public static function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['user_id'] = Filament::auth()->id();
+        return $data;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('user_id', Filament::auth()->id());
+    }
 
     public static function getPages(): array
     {

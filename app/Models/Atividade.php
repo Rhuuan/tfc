@@ -14,6 +14,7 @@ class Atividade extends Model
         'descricao',
         'tarefa_id',
         'fase_id',
+        'user_id', // 🔹 adicionado
     ];
 
     public function tarefa()
@@ -26,4 +27,8 @@ class Atividade extends Model
         return $this->belongsTo(Fase::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class); // 🔹 vínculo com o usuário
+    }
 }

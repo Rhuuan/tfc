@@ -12,14 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tarefas', function (Blueprint $table) {
-        $table->id();
-        $table->string('nome');
-        $table->text('descricao')->nullable();
-        $table->timestamps();
-    });
-
+            $table->id();
+            $table->string('nome');
+            $table->text('descricao')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // vincula cada tarefa ao usuário
+            $table->timestamps();
+        });
     }
-
 
     /**
      * Reverse the migrations.

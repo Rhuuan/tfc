@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nome');
             $table->text('descricao')->nullable();
-            $table->string('tipo'); // Ex: Entrevista, Questionário, Ferramenta Visual, etc.
+            $table->string('tipo');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // 🔹 Aqui
             $table->timestamps();
         });
     }

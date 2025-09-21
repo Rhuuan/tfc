@@ -4,11 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProjetoResource\Pages;
 use App\Models\Projeto;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Builder; 
 
 class ProjetoResource extends Resource
 {
@@ -59,6 +61,8 @@ class ProjetoResource extends Resource
                 ->required()
                 ->preload()
                 ->searchable(),
+            // Campo oculto para gravar user_id automaticamente
+            Forms\Components\Hidden::make('user_id'),
         ]);
     }
 
@@ -90,6 +94,24 @@ class ProjetoResource extends Resource
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
+    }
+
+    /**
+     * 🔹 Sempre salvar o registro vinculado ao usuário logado
+     */
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['user_id'] = Filament::auth()->id();
+        return $data;
+    }
+
+    /**
+     * 🔹 Só listar registros do usuário logado
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('user_id', Filament::auth()->id());
     }
 
     public static function getPages(): array

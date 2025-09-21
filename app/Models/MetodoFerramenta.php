@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MetodoFerramenta extends Model
 {
@@ -10,5 +11,11 @@ class MetodoFerramenta extends Model
         'nome',
         'tipo',
         'descricao',
+        'user_id',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

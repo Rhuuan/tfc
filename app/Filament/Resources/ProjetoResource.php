@@ -37,28 +37,24 @@ class ProjetoResource extends Resource
             Forms\Components\MultiSelect::make('fases')
                 ->relationship('fases', 'nome')
                 ->label('Fases')
-                ->required()
                 ->preload()
                 ->searchable(),
 
             Forms\Components\MultiSelect::make('atividades')
                 ->relationship('atividades', 'nome')
                 ->label('Atividades')
-                ->required()
                 ->preload()
                 ->searchable(),
 
             Forms\Components\MultiSelect::make('tarefas')
                 ->relationship('tarefas', 'nome')
                 ->label('Tarefas')
-                ->required()
                 ->preload()
                 ->searchable(),
 
             Forms\Components\MultiSelect::make('metodoFerramentas')
                 ->relationship('metodoFerramentas', 'nome')
                 ->label('Métodos e Ferramentas')
-                ->required()
                 ->preload()
                 ->searchable(),
             // Campo oculto para gravar user_id automaticamente

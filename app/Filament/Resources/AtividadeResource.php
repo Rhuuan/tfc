@@ -33,7 +33,6 @@ class AtividadeResource extends Resource
 
             Forms\Components\Select::make('fase_id')
                 ->relationship('fase', 'nome')
-                ->required()
                 ->label('Fase'),
 
             Forms\Components\Select::make('tarefa_id')

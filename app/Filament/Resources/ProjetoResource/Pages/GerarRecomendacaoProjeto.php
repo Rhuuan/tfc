@@ -8,6 +8,7 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class GerarRecomendacaoProjeto extends Page
@@ -15,11 +16,10 @@ class GerarRecomendacaoProjeto extends Page
     protected static string $resource = ProjetoResource::class;
     protected static string $view = 'filament.resources.projeto-resource.pages.gerar-recomendacao-projeto';
 
-    public ?array $dadosProjeto = [];   // substitui $record
-    public string $contexto = '{}';     // JSON separado
+    public ?array $dadosProjeto = [];
+    public string $contexto = '{}';
     public ?string $resposta = null;
 
-    // Recebe o ID do projeto via query string (ex: ?record=1)
     public ?int $record = null;
 
     public function mount(): void
@@ -117,10 +117,10 @@ Contexto do Projeto:
 EOT;
 
         try {
-            // Chamada HTTP com SSL desativado apenas para desenvolvimento local
+            // Aumentado timeout para 60s, pois a IA pode demorar
             $response = Http::withOptions([
-                'verify' => false
-            ])->timeout(30)->post(
+                'verify' => config('app.env') !== 'local', // Mais seguro: verifica SSL em produção
+            ])->timeout(60)->post(
                 config('services.gemini.url') . '?key=' . config('services.gemini.key'),
                 [
                     'contents' => [
@@ -134,20 +134,32 @@ EOT;
             );
 
             if ($response->failed()) {
-                throw new Exception('Erro ao processar requisição: ' . $response->body());
+                // Lança uma exceção com mais detalhes do erro da API
+                throw new Exception('Erro na API do Gemini: ' . $response->status() . ' - ' . $response->body());
             }
 
             $data = $response->json();
-            $this->resposta = $data['output'] ?? '[Sem resposta da LLM]';
+            
+            // Opcional: Para depurar, grave a resposta completa da API nos logs do Laravel
+            // Log::info('Resposta da API Gemini:', $data);
 
+            // Acessa a estrutura correta da resposta da API Gemini
+            $this->resposta = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            
+            // Se, por algum motivo, a estrutura da resposta for inesperada ou o texto vier vazio
+            if (empty($this->resposta)) {
+                 throw new Exception('A resposta da API não continha o texto esperado. Resposta recebida: ' . json_encode($data));
+            }
+            
             Notification::make()
                 ->title('Recomendação gerada com sucesso')
                 ->success()
                 ->send();
+
         } catch (Exception $e) {
             Notification::make()
-                ->title('Erro ao conectar com o serviço de recomendação')
-                ->body($e->getMessage())
+                ->title('Erro ao gerar recomendação')
+                ->body($e->getMessage()) // Mostra a mensagem de erro detalhada
                 ->danger()
                 ->persistent()
                 ->send();

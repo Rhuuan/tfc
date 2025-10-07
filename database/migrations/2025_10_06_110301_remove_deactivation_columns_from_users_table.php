@@ -12,12 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Remover as 3 colunas relacionadas à desativação/reativação
-            $table->dropColumn([
-                'deactivated_at',
-                'reactivation_token', 
-                'reactivation_token_expires'
-            ]);
+            // Verificar se as colunas existem antes de tentar removê-las
+            if (Schema::hasColumn('users', 'deactivated_at')) {
+                $table->dropColumn('deactivated_at');
+            }
+            if (Schema::hasColumn('users', 'reactivation_token')) {
+                $table->dropColumn('reactivation_token');
+            }
+            if (Schema::hasColumn('users', 'reactivation_token_expires')) {
+                $table->dropColumn('reactivation_token_expires');
+            }
         });
     }
 

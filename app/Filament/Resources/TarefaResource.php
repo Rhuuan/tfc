@@ -32,7 +32,9 @@ class TarefaResource extends Resource
                 ->label('Descrição'),
 
             Forms\Components\MultiSelect::make('metodos_ferramentas')
-                ->relationship('metodosFerramentas', 'nome')
+                ->relationship('metodosFerramentas', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->label('Métodos e Ferramentas')
                 ->required()
                 ->preload()

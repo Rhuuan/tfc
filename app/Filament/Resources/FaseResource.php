@@ -34,7 +34,9 @@ class FaseResource extends Resource
                 ->label('Data'),
 
             Forms\Components\Select::make('atividades')
-                ->relationship('atividades', 'nome')
+                ->relationship('atividades', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->multiple()
                 ->preload()
                 ->label('Atividades'),

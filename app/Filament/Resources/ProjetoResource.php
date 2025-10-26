@@ -35,25 +35,33 @@ class ProjetoResource extends Resource
                 ->label('Descrição'),
 
             Forms\Components\MultiSelect::make('fases')
-                ->relationship('fases', 'nome')
+                ->relationship('fases', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->label('Fases')
                 ->preload()
                 ->searchable(),
 
             Forms\Components\MultiSelect::make('atividades')
-                ->relationship('atividades', 'nome')
+                ->relationship('atividades', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->label('Atividades')
                 ->preload()
                 ->searchable(),
 
             Forms\Components\MultiSelect::make('tarefas')
-                ->relationship('tarefas', 'nome')
+                ->relationship('tarefas', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->label('Tarefas')
                 ->preload()
                 ->searchable(),
 
             Forms\Components\MultiSelect::make('metodoFerramentas')
-                ->relationship('metodoFerramentas', 'nome')
+                ->relationship('metodoFerramentas', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->label('Métodos e Ferramentas')
                 ->preload()
                 ->searchable(),

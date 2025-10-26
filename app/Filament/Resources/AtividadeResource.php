@@ -32,11 +32,15 @@ class AtividadeResource extends Resource
                 ->label('Descrição'),
 
             Forms\Components\Select::make('fase_id')
-                ->relationship('fase', 'nome')
+                ->relationship('fase', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->label('Fase'),
 
             Forms\Components\Select::make('tarefa_id')
-                ->relationship('tarefa', 'nome')
+                ->relationship('tarefa', 'nome', function (Builder $query) {
+                    return $query->where('user_id', Filament::auth()->id());
+                })
                 ->required() 
                 ->label('Tarefa'),
         ]);

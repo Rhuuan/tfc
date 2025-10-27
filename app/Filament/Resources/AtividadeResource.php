@@ -35,7 +35,10 @@ class AtividadeResource extends Resource
                 ->relationship('fase', 'nome', function (Builder $query) {
                     return $query->where('user_id', Filament::auth()->id());
                 })
-                ->label('Fase'),
+                ->label('Fase')
+                ->nullable()
+                ->searchable()
+                ->placeholder('Selecione uma fase (opcional)'),
 
             Forms\Components\Select::make('tarefa_id')
                 ->relationship('tarefa', 'nome', function (Builder $query) {

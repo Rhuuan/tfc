@@ -108,32 +108,51 @@ class GerarRecomendacaoProjeto extends Page
             return;
         }
         
+        // Extrai o nome e a descrição do projeto para usar no prompt
+        // Extrai o nome e a descrição do projeto para usar no prompt
+        $projetoNome = $this->dadosProjeto['nome'] ?? 'Nome não definido';
+        $projetoDescricao = $this->dadosProjeto['descricao'] ?? 'Descrição não definida';
+
         $prompt = <<<EOT
-Você é um consultor Sênior de Gestão de Projetos, especialista em otimizar fluxos de trabalho. Sua comunicação é clara, direta e focada em resultados práticos.
+Você é um Consultor Sênior de Engenharia de Software e Gestão de Projetos.
 
-Analise o seguinte projeto em formato JSON.
-**Importante: Analise o projeto mesmo que algumas seções como 'fases', 'atividades' ou 'tarefas' estejam vazias. Se informações cruciais estiverem faltando, sua primeira recomendação DEVE ser sobre a necessidade de detalhar melhor essas seções para um planejamento mais eficaz.**
+Sua tarefa é analisar o JSON de um projeto e gerar duas coisas: (1) um código Mermaid e (2) uma justificação.
 
-Contexto do Projeto:
+--------------------------------------------------
+PROJETO PARA ANALISAR:
+- **Nome:** {$projetoNome}
+- **Descrição:** {$projetoDescricao}
+- **Estrutura JSON (Fases, Atividades, Tarefas já cadastradas):**
 {$this->contexto}
+--------------------------------------------------
 
-Sua tarefa é gerar uma recomendação de otimização para este projeto.
-A sua resposta DEVE seguir ESTRITAMENTE a seguinte estrutura, usando Markdown para formatação:
+REGRAS DA SUA RESPOSTA:
+Sua resposta DEVE seguir ESTRITAMENTE o formato Markdown abaixo.
 
 ## Código Mermaid
-Gere APENAS o código para um diagrama de fluxo (flowchart) em sintaxe Mermaid. O diagrama deve estar dentro de um bloco de código. Se não houver dados suficientes para criar um fluxo detalhado, crie um fluxo genérico de boas práticas para o tipo de projeto descrito. NÃO inclua nenhum texto explicativo NESTA seção, apenas o código.
-É importante que traga graph TD para que o diagrama seja renderizado corretamente. O graph TD deve vim com os ; Assim graph TD;
+Gere APENAS o código para um diagrama de fluxo `graph TD;`.
+- Use `subgraph` para a hierarquia (Fase > Atividade > Tarefa).
+- **CRÍTICO:** Use IDs únicos (sem espaços, ex: `F1`) e nomes em aspas (ex: `F1["Fase: Planejamento"]`).
+- **CRÍTICO:** `subgraph`, `end`, e comentários `%%` DEVEM estar em linhas separadas.
+- Integre os itens do JSON acima e adicione (sugira) as etapas que faltam para um fluxo de software completo.
 
 ```mermaid
-graph TD:
-    A[Início] --> B{Planejamento};
-    B --> C[Execução];
-    C --> D[Monitoramento];
-    D --> E[Encerramento];
-    Justificação
-Explique em uma lista (bullet points) o porquê de cada etapa do fluxo que você criou acima. Seja direto e justifique como o novo fluxo resolve um problema ou otimiza o processo atual. Use poucas palavras.
-
-NÃO adicione nenhuma outra informação ou texto fora da estrutura solicitada.
+graph TD;
+    %% Inicie seu código aqui.
+    %% Exemplo de sintaxe CORRETA:
+    
+    subgraph F1_Exemplo["Fase Exemplo 1 (Sua Sugestão)"]
+        direction TB
+        A1_1["Atividade 1.1 (Registrada)"] --> T1_1_1["Tarefa 1.1.1 (Registrada)"]
+    end
+    
+    subgraph F2_Exemplo["Fase Exemplo 2 (Sua Sugestão)"]
+        direction TB
+        A2_1["Atividade 2.1 (Sua Sugestão)"]
+    end
+    
+    %% Conexão
+    F1_Exemplo --> F2_Exemplo
 EOT;
 
     try {
@@ -163,9 +182,36 @@ EOT;
         preg_match('/```mermaid(.*?)```/s', $this->resposta, $mermaidMatches);
         $this->codigoMermaid = trim($mermaidMatches[1] ?? 'graph TD; A[Erro]; A-->B[Diagrama não encontrado na resposta da IA];');
 
-        preg_match('/## Justificação\s*(.*)/s', $this->resposta, $justificacaoMatches);
-        $this->justificacao = trim($justificacaoMatches[1] ?? 'Nenhuma justificação foi encontrada na resposta da IA.');
         
+        // PARSING DA JUSTIFICAÇÃO (CORRIGIDO)
+        // Procura por "## Justificação" (ou "### Justificação", etc.) e captura tudo depois
+        preg_match('/(#{2,}\s*Justificação)([\s\S]*)/is', $this->resposta, $justificacaoMatches);
+        
+        if (isset($justificacaoMatches[2]) && !empty(trim($justificacaoMatches[2]))) {
+             $this->justificacao = trim($justificacaoMatches[2]);
+        } else {
+             // Fallback: Se não encontrar o TÍTULO, talvez a IA tenha retornado a justificação
+             // logo após o bloco mermaid. Vamos tentar pegar o que vem DEPOIS.
+             $parts = preg_split('/```/s', $this->resposta);
+             if (isset($parts[2]) && !empty(trim($parts[2]))) {
+                // Pega a terceira parte (depois do fechamento do ```) e limpa
+                // CORRIGIDO AQUI:
+                $this->justificacao = trim(preg_replace('/^justificação/i', '', $parts[2]));
+             } else {
+                // Se tudo falhar, usa a mensagem de erro
+                // CORRIGIDO AQUI:
+                $this->justificacao = 'Nenhuma justificação foi encontrada na resposta da IA.';
+             }
+        }
+        
+        // Se a justificação ainda for a mensagem de erro, vamos logar a resposta crua para debug
+        // CORRIGIDO AQUI:
+        if ($this->justificacao === 'Nenhuma justificação foi encontrada na resposta da IA.') {
+            // CORRIGIDO AQUI: (e adicionado Log::)
+            \Illuminate\Support\Facades\Log::warning('Falha ao extrair justificação. Resposta da IA: ' . $this->resposta);
+        }
+
+
         Notification::make()
             ->title('Recomendação gerada com sucesso')
             ->success()

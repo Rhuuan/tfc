@@ -37,15 +37,19 @@ class AtividadeResource extends Resource
                 })
                 ->label('Fase')
                 ->nullable()
+                ->preload()
                 ->searchable()
                 ->placeholder('Selecione uma fase (opcional)'),
 
-            Forms\Components\Select::make('tarefa_id')
-                ->relationship('tarefa', 'nome', function (Builder $query) {
+            Forms\Components\Select::make('tarefas')
+                ->relationship('tarefas', 'nome', function (Builder $query) {
                     return $query->where('user_id', Filament::auth()->id());
                 })
-                ->required() 
-                ->label('Tarefa'),
+                ->multiple()
+                ->preload()
+                ->required()
+                ->searchable()
+                ->label('Tarefas'),
         ]);
     }
 
@@ -55,7 +59,7 @@ class AtividadeResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nome')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('fase.nome')->label('Fase')->sortable(),
-                Tables\Columns\TextColumn::make('tarefa.nome')->label('Tarefa')->sortable(),
+                Tables\Columns\TagsColumn::make('tarefas.nome')->label('Tarefas'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Criado em'),
             ])
             ->actions([

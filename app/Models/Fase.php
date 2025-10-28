@@ -12,8 +12,7 @@ class Fase extends Model
 
     protected $fillable = [
         'nome',
-        'data',
-        'user_id', // adicionado
+        'user_id',
     ];
 
     // Relação muitos para muitos com Atividade

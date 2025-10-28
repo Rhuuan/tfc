@@ -14,9 +14,12 @@ class FaseAtividadeTest extends TestCase
     /** @test */
     public function pode_criar_fase_com_atividades()
     {
-        $fase = Fase::factory()->create();
-        $atividade = Atividade::factory()->create(['fase_id' => $fase->id]);
+    $fase = Fase::factory()->create();
+    $atividade = Atividade::factory()->create();
 
-        $this->assertEquals($fase->id, $atividade->fase->id);
+    $atividade->fase()->associate($fase);
+    $atividade->save();
+
+    $this->assertEquals($fase->id, $atividade->fresh()->fase->id);
     }
 }

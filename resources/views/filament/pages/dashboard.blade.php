@@ -5,6 +5,24 @@
             Bem-vindo, {{ $this->getUserName() }} 👋
         </h2>
 
+        {{-- Introdução ao fluxo do sistema --}}
+        
+            <div class="space-y-3 text-sm text-gray-700">
+                <p class="font-semibold text-primary-700">
+                    Use o menu lateral para gerenciar:
+                </p>
+                <ul class="space-y-2 list-disc list-inside">
+                    <li><strong>Projetos:</strong> O escopo geral do seu trabalho.</li>
+                    <li><strong>Fases:</strong> Etapas macro do projeto (com prazo).</li>
+                    <li><strong>Atividades:</strong> Ações dentro de cada Fase.</li>
+                    <li><strong>Tarefas:</strong> A menor unidade de trabalho, ação pontual.</li>
+                    <li><strong>Métodos e Ferramentas:</strong> Recursos de apoio para vincular às suas ações.</li>
+                </ul>
+                <p class="text-gray-800 font-medium">
+                    <strong>Sugestão Rápida:</strong> Comece criando um Projeto e use a função <em>Gerar Recomendação</em> para que o sistema sugira automaticamente Fases, Atividades e Métodos para você.
+                </p>
+            </div>
+
         {{-- Grid de cards com estatísticas --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <x-filament::card>

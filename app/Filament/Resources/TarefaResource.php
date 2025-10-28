@@ -36,7 +36,6 @@ class TarefaResource extends Resource
                     return $query->where('user_id', Filament::auth()->id());
                 })
                 ->label('Métodos e Ferramentas')
-                ->required()
                 ->preload()
                 ->searchable(),
         ]);

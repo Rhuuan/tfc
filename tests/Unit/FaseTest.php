@@ -28,7 +28,7 @@ class FaseTest extends TestCase
     public function test_fase_model_has_correct_fillable_attributes(): void
     {
         $fase = new Fase();
-        $expectedFillable = ['nome', 'data', 'user_id'];
+    $expectedFillable = ['nome', 'user_id'];
         
         $this->assertEquals($expectedFillable, $fase->getFillable());
     }
@@ -60,7 +60,6 @@ class FaseTest extends TestCase
         
         $faseData = [
             'nome' => 'Fase de Planejamento',
-            'data' => '2025-12-31',
             'user_id' => $user->id,
         ];
 
@@ -68,7 +67,6 @@ class FaseTest extends TestCase
 
         $this->assertInstanceOf(Fase::class, $fase);
         $this->assertEquals('Fase de Planejamento', $fase->nome);
-        $this->assertEquals('2025-12-31', $fase->data);
         $this->assertEquals($user->id, $fase->user_id);
         $this->assertDatabaseHas('fases', $faseData);
     }
@@ -82,7 +80,6 @@ class FaseTest extends TestCase
 
         $this->assertInstanceOf(Fase::class, $fase);
         $this->assertNotEmpty($fase->nome);
-        $this->assertNotEmpty($fase->data);
         $this->assertNotNull($fase->user_id);
         $this->assertDatabaseHas('fases', ['id' => $fase->id]);
     }
@@ -111,7 +108,6 @@ class FaseTest extends TestCase
         
         Fase::create([
             'nome' => null,
-            'data' => null,
             'user_id' => null,
         ]);
     }
@@ -166,13 +162,13 @@ class FaseTest extends TestCase
     public function test_fase_has_many_to_many_relationship_with_atividades(): void
     {
         $fase = Fase::factory()->create();
-        $atividade = Atividade::factory()->create(['user_id' => $fase->user_id]);
+    $atividade = Atividade::factory()->create(['user_id' => $fase->user_id]);
 
-        $fase->atividades()->attach($atividade);
+    $fase->atividades()->attach($atividade);
 
-        $this->assertTrue($fase->atividades->contains($atividade));
-        $this->assertInstanceOf(Atividade::class, $fase->atividades->first());
-        $this->assertEquals(1, $fase->atividades->count());
+    $this->assertTrue($fase->atividades->contains($atividade));
+    $this->assertInstanceOf(Atividade::class, $fase->atividades->first());
+    $this->assertEquals(1, $fase->atividades->count());
     }
 
     /**
@@ -214,19 +210,6 @@ class FaseTest extends TestCase
     /**
      * Testa a validação de formato de data se aplicável.
      */
-    public function test_fase_data_field_accepts_valid_date(): void
-    {
-        $user = User::factory()->create();
-        
-        $fase = Fase::create([
-            'nome' => 'Teste Data',
-            'data' => '2025-12-31',
-            'user_id' => $user->id,
-        ]);
-
-        $this->assertEquals('2025-12-31', $fase->data);
-    }
-
     /**
      * Testa se user_id é obrigatório ao criar uma fase.
      */
@@ -236,7 +219,6 @@ class FaseTest extends TestCase
         
         Fase::create([
             'nome' => 'Fase sem usuário',
-            'data' => '2025-12-31',
             // user_id está faltando
         ]);
     }

@@ -14,7 +14,6 @@ class FaseFactory extends Factory
     {
         return [
             'nome' => $this->faker->word,
-            'data' => $this->faker->date(),
             'user_id' => User::factory(), // vincula usuário automaticamente
         ];
     }

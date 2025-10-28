@@ -31,4 +31,9 @@ class Tarefa extends Model
     {
         return $this->belongsToMany(MetodoFerramenta::class, 'metodo_ferramenta_tarefa');
     }
+
+    public function atividades(): BelongsToMany
+    {
+        return $this->belongsToMany(Atividade::class, 'atividade_tarefa')->withTimestamps();
+    }
 }

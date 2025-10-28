@@ -17,9 +17,21 @@ class AtividadeFactory extends Factory
         return [
             'nome' => $this->faker->word,
             'descricao' => $this->faker->sentence,
-            'tarefa_id' => Tarefa::factory(), // cria uma tarefa automaticamente
             'fase_id' => Fase::factory(),     // cria uma fase automaticamente
             'user_id' => User::factory(),     // cria um usuário automaticamente
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Atividade $atividade): void {
+            if ($atividade->tarefas()->exists()) {
+                return;
+            }
+
+            $atividade->tarefas()->attach(
+                Tarefa::factory()->create(['user_id' => $atividade->user_id])->id
+            );
+        });
     }
 }

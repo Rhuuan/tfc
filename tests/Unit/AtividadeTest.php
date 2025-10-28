@@ -29,7 +29,7 @@ class AtividadeTest extends TestCase
     public function test_atividade_model_has_correct_fillable_attributes(): void
     {
         $atividade = new Atividade();
-        $expectedFillable = ['nome', 'descricao', 'tarefa_id', 'fase_id', 'user_id'];
+        $expectedFillable = ['nome', 'descricao', 'fase_id', 'user_id'];
         
         $this->assertEquals($expectedFillable, $atividade->getFillable());
     }
@@ -58,26 +58,41 @@ class AtividadeTest extends TestCase
     public function test_can_create_atividade_with_valid_data(): void
     {
         $user = User::factory()->create();
-        $tarefa = Tarefa::factory()->create(['user_id' => $user->id]);
+        $tarefas = Tarefa::factory()->count(2)->create(['user_id' => $user->id]);
         $fase = Fase::factory()->create(['user_id' => $user->id]);
         
         $atividadeData = [
             'nome' => 'Análise de Requisitos',
             'descricao' => 'Levantar e documentar os requisitos do sistema',
-            'tarefa_id' => $tarefa->id,
             'fase_id' => $fase->id,
             'user_id' => $user->id,
         ];
 
         $atividade = Atividade::create($atividadeData);
 
+    $atividade->tarefas()->attach($tarefas->pluck('id')->all());
+
         $this->assertInstanceOf(Atividade::class, $atividade);
         $this->assertEquals('Análise de Requisitos', $atividade->nome);
         $this->assertEquals('Levantar e documentar os requisitos do sistema', $atividade->descricao);
-        $this->assertEquals($tarefa->id, $atividade->tarefa_id);
         $this->assertEquals($fase->id, $atividade->fase_id);
         $this->assertEquals($user->id, $atividade->user_id);
-        $this->assertDatabaseHas('atividades', $atividadeData);
+        $this->assertEquals(2, $atividade->tarefas()->count());
+
+        foreach ($tarefas as $tarefa) {
+            $this->assertDatabaseHas('atividade_tarefa', [
+                'atividade_id' => $atividade->id,
+                'tarefa_id' => $tarefa->id,
+            ]);
+        }
+
+        $this->assertDatabaseHas('atividades', [
+            'id' => $atividade->id,
+            'nome' => 'Análise de Requisitos',
+            'descricao' => 'Levantar e documentar os requisitos do sistema',
+            'fase_id' => $fase->id,
+            'user_id' => $user->id,
+        ]);
     }
 
     /**
@@ -90,9 +105,9 @@ class AtividadeTest extends TestCase
         $this->assertInstanceOf(Atividade::class, $atividade);
         $this->assertNotEmpty($atividade->nome);
         $this->assertNotEmpty($atividade->descricao);
-        $this->assertNotNull($atividade->tarefa_id);
         $this->assertNotNull($atividade->fase_id);
         $this->assertNotNull($atividade->user_id);
+        $this->assertTrue($atividade->tarefas()->exists());
         $this->assertDatabaseHas('atividades', ['id' => $atividade->id]);
     }
 
@@ -120,7 +135,6 @@ class AtividadeTest extends TestCase
         
         Atividade::create([
             'nome' => null,
-            'tarefa_id' => null,
             'fase_id' => null,
             'user_id' => null,
         ]);
@@ -179,18 +193,20 @@ class AtividadeTest extends TestCase
     /**
      * Testa o relacionamento com Tarefa.
      */
-    public function test_atividade_belongs_to_tarefa(): void
+    public function test_atividade_belongs_to_many_tarefas(): void
     {
         $user = User::factory()->create();
-        $tarefa = Tarefa::factory()->create(['user_id' => $user->id]);
-        $atividade = Atividade::factory()->create([
-            'tarefa_id' => $tarefa->id,
-            'user_id' => $user->id,
-        ]);
+        $atividade = Atividade::factory()->create(['user_id' => $user->id]);
+        $tarefas = Tarefa::factory()->count(2)->create(['user_id' => $user->id]);
 
-        $this->assertInstanceOf(Tarefa::class, $atividade->tarefa);
-        $this->assertEquals($tarefa->id, $atividade->tarefa->id);
-        $this->assertEquals($tarefa->nome, $atividade->tarefa->nome);
+        $atividade->tarefas()->sync($tarefas->pluck('id'));
+        $atividade->load('tarefas');
+
+        $this->assertEquals(2, $atividade->tarefas->count());
+
+        foreach ($tarefas as $tarefa) {
+            $this->assertTrue($atividade->tarefas->contains($tarefa));
+        }
     }
 
     /**
@@ -216,24 +232,28 @@ class AtividadeTest extends TestCase
     public function test_atividade_has_all_relationships(): void
     {
         $user = User::factory()->create();
-        $tarefa = Tarefa::factory()->create(['user_id' => $user->id]);
+        $tarefas = Tarefa::factory()->count(2)->create(['user_id' => $user->id]);
         $fase = Fase::factory()->create(['user_id' => $user->id]);
         
         $atividade = Atividade::factory()->create([
             'user_id' => $user->id,
-            'tarefa_id' => $tarefa->id,
             'fase_id' => $fase->id,
         ]);
 
+        $atividade->tarefas()->sync($tarefas->pluck('id'));
+        $atividade->load('tarefas');
+
         // Testa todos os relacionamentos
         $this->assertInstanceOf(User::class, $atividade->user);
-        $this->assertInstanceOf(Tarefa::class, $atividade->tarefa);
         $this->assertInstanceOf(Fase::class, $atividade->fase);
+        $this->assertEquals($tarefas->count(), $atividade->tarefas->count());
         
         // Testa integridade dos dados
         $this->assertEquals($user->id, $atividade->user->id);
-        $this->assertEquals($tarefa->id, $atividade->tarefa->id);
         $this->assertEquals($fase->id, $atividade->fase->id);
+        foreach ($tarefas as $tarefa) {
+            $this->assertTrue($atividade->tarefas->contains($tarefa));
+        }
     }
 
     /**
@@ -243,53 +263,52 @@ class AtividadeTest extends TestCase
     {
         $this->expectException(\Illuminate\Database\QueryException::class);
         
-        $tarefa = Tarefa::factory()->create();
         $fase = Fase::factory()->create();
         
         Atividade::create([
             'nome' => 'Atividade sem usuário',
             'descricao' => 'Descrição da atividade',
-            'tarefa_id' => $tarefa->id,
             'fase_id' => $fase->id,
             // user_id está faltando
         ]);
     }
 
     /**
-     * Testa se tarefa_id é obrigatório ao criar uma atividade.
+     * Testa se uma atividade pode ter múltiplas tarefas associadas.
      */
-    public function test_tarefa_id_is_required(): void
+    public function test_atividade_can_have_multiple_tarefas(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
-        
         $user = User::factory()->create();
-        $fase = Fase::factory()->create(['user_id' => $user->id]);
-        
-        Atividade::create([
-            'nome' => 'Atividade sem tarefa',
-            'descricao' => 'Descrição da atividade',
-            'fase_id' => $fase->id,
-            'user_id' => $user->id,
-            // tarefa_id está faltando
-        ]);
+        $atividade = Atividade::factory()->create(['user_id' => $user->id]);
+        $tarefas = Tarefa::factory()->count(3)->create(['user_id' => $user->id]);
+
+        $atividade->tarefas()->sync($tarefas->pluck('id'));
+        $atividade->load('tarefas');
+
+        $this->assertEquals(3, $atividade->tarefas->count());
+
+        foreach ($tarefas as $tarefa) {
+            $this->assertTrue($atividade->tarefas->contains($tarefa));
+        }
     }
 
     /**
-     * Testa se fase_id é obrigatório ao criar uma atividade.
+     * Testa se fase_id pode ser opcional ao criar uma atividade.
      */
-    public function test_fase_id_is_required(): void
+    public function test_fase_id_can_be_optional(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
-        
         $user = User::factory()->create();
-        $tarefa = Tarefa::factory()->create(['user_id' => $user->id]);
-        
-        Atividade::create([
+
+        $atividade = Atividade::create([
             'nome' => 'Atividade sem fase',
             'descricao' => 'Descrição da atividade',
-            'tarefa_id' => $tarefa->id,
             'user_id' => $user->id,
-            // fase_id está faltando
+        ]);
+
+        $this->assertNull($atividade->fase_id);
+        $this->assertDatabaseHas('atividades', [
+            'id' => $atividade->id,
+            'fase_id' => null,
         ]);
     }
 
@@ -301,12 +320,10 @@ class AtividadeTest extends TestCase
         $this->expectException(\Illuminate\Database\QueryException::class);
         
         $user = User::factory()->create();
-        $tarefa = Tarefa::factory()->create(['user_id' => $user->id]);
         $fase = Fase::factory()->create(['user_id' => $user->id]);
         
         Atividade::create([
             'descricao' => 'Descrição da atividade',
-            'tarefa_id' => $tarefa->id,
             'fase_id' => $fase->id,
             'user_id' => $user->id,
             // nome está faltando
@@ -324,11 +341,12 @@ class AtividadeTest extends TestCase
         
         $atividade = Atividade::create([
             'nome' => 'Atividade sem descrição',
-            'tarefa_id' => $tarefa->id,
             'fase_id' => $fase->id,
             'user_id' => $user->id,
             // descrição não fornecida
         ]);
+
+        $atividade->tarefas()->attach($tarefa->id);
 
         $this->assertInstanceOf(Atividade::class, $atividade);
         $this->assertEquals('Atividade sem descrição', $atividade->nome);

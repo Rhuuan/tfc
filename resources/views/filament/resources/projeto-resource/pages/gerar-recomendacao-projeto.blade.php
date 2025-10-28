@@ -69,30 +69,43 @@
         </div>
 
         {{-- ======================================================= --}}
-        {{-- ESTADO 3: RESULTADO --}}
+        {{-- ESTADO 3: RESULTADO (CORRIGIDO) --}}
         {{-- ======================================================= --}}
         @if ($resposta)
-            <div class="space-y-8">
+            <div 
+                class="space-y-8"
+                {{-- Ligamos o Alpine.js aqui, no container principal --}}
+                x-data="{ codigo: @entangle('codigoMermaid') }"
+                {{-- E mandamos ele "assistir" a variável 'codigo' --}}
+                x-init="$nextTick(() => window.renderMermaid(codigo))"
+            >
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                            <x-heroicon-o-chat-bubble-left-right class="w-7 h-7 text-primary-500" />
+                            <x-heroicon-o-chat-bubble-left-right class="w-7 h-7 text-primary-500 mb-10" />
                             Recomendação Gerada
                         </h2>
-                        <p class="text-sm text-gray-600 mt-1">Abaixo está o fluxo de trabalho otimizado e a justificação.</p>
+                        <p class="text-sm text-gray-600 mb-10">Abaixo está o fluxo de trabalho otimizado e a justificação.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {{-- Mermaid com fundo preto e texto branco --}}
+                <div class="grid grid-cols-1 gap-8">
+                    
+                    {{-- COLUNA 1: FLUXO RECOMENDADO (DIAGRAMA) --}}
                     <x-filament::section>
-                        <x-slot name="heading">Código Mermaid</x-slot>
-                        <div class="p-4 bg-black text-white rounded-md min-h-[200px] flex items-center justify-center overflow-auto">
-                            <pre class="mermaid whitespace-pre-wrap">{{ trim($codigoMermaid) }}</pre>
+                        <x-slot name="heading" >Fluxo Recomendado</x-slot>
+                        
+                        {{-- O container onde o Mermaid vai desenhar --}}
+                        {{-- Damos uma altura fixa (h-[600px]) e overflow-hidden --}}
+                        <div class="bg-gray-900 rounded-md w-full overflow-hidden border border-gray-700 flex-1 h-[600px]" style="height: 600px;">
+                            {{-- O SVG será injetado aqui e controlado pela biblioteca de pan-zoom --}}
+                            <div id="mermaid-diagram" class="w-full">
+                                <p class="text-gray-400 p-4">O diagrama aparecerá aqui...</p>
+                            </div>
                         </div>
                     </x-filament::section>
 
-                    {{-- Justificação corrigida com texto branco --}}
+                    {{-- COLUNA 2: JUSTIFICAÇÃO (O seu código original, que está ótimo) --}}
                     <div class="rounded-xl border border-primary-800 bg-primary-600 p-6 text-white shadow-sm space-y-4 max-h-[400px] overflow-auto">
                         <div class="text-lg font-semibold flex items-center gap-2">
                             <x-heroicon-o-document-text class="w-6 h-6 text-white" />
@@ -126,37 +139,106 @@
                 </div>
             </div>
 
-            {{-- Scripts Mermaid --}}
-            @push('scripts')
-                <script type="module">
-                    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.js';
-                    mermaid.initialize({ startOnLoad: true, theme: 'default' });
-
-                    document.addEventListener('livewire:load', function () {
-                        Livewire.hook('message.processed', () => {
-                            if (document.querySelector('.mermaid')) {
-                                document.querySelectorAll('.mermaid').forEach(el => {
-                                    el.removeAttribute('data-processed');
-                                });
-                                mermaid.run();
-                            }
-                        });
-                    });
-                </script>
-                <style>
-                    .mermaid text {
-                        fill: #FFFFFF !important;
-                    }
-                    .mermaid path.flowchart-link {
-                        stroke: #cccccc !important;
-                    }
-                </style>
-            @endpush
+            {{-- 
+                IMPORTANTE: O @push('scripts') que estava aqui dentro 
+                foi removido para evitar duplicidade.
+            --}}
         @endif
 
     </div>
 </x-filament::page>
 
-    <script type="module">
-      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    </script>
+@push('scripts')
+{{-- Carrega a biblioteca de Pan/Zoom PRIMEIRO --}}
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+{{-- Carrega nosso script de módulo DEPOIS --}}
+<script type="module">
+    // 1. Importa o Mermaid
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    // 2. Inicializa o Mermaid
+    mermaid.initialize({ 
+        startOnLoad: false, 
+        theme: 'dark' 
+    });
+
+    // 3. Define nossa função de renderização no 'window'
+    window.renderMermaid = async function(content) {
+        const el = document.getElementById('mermaid-diagram');
+        if (!el || !content) {
+            if (el) el.innerHTML = '<p class="text-gray-400 p-4">O diagrama aparecerá aqui...</p>';
+            return;
+        }
+
+        // Limpa a instância antiga de pan-zoom, se existir
+        if (window.panZoomInstance) {
+            window.panZoomInstance.destroy();
+            window.panZoomInstance = null;
+        }
+
+        const graphId = 'g' + new Date().getTime();
+        
+        try {
+            // 4. Renderiza o SVG do Mermaid
+            const { svg } = await mermaid.render(graphId, content);
+            el.innerHTML = svg;
+
+            // 5. ----> INICIA O PAN-ZOOM <----
+            const svgElement = el.querySelector('svg');
+            
+            // Verifica se o SVG e a biblioteca (svgPanZoom) existem
+            if (svgElement && window.svgPanZoom) { 
+                
+                // ==============================================================
+                // AQUI ESTÁ A CORREÇÃO:
+                // 1. Remove os atributos de tamanho fixo do Mermaid
+                svgElement.removeAttribute('width');
+                svgElement.removeAttribute('height');
+
+                // 2. Força o SVG a preencher o container (para o pan-zoom funcionar)
+                svgElement.style.width = '100%';
+                svgElement.style.height = '1200px';
+                
+                // ==============================================================
+
+                // 3. Atrasamos a inicialização em 1 tick (0ms) para
+                // garantir que o browser renderizou o SVG antes do pan-zoom ler suas dimensões.
+                setTimeout(() => {
+                    // Inicia o pan-zoom
+                    window.panZoomInstance = svgPanZoom(svgElement, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: true, // Mostra botões de + / -
+                        fit: true,                 // Ajusta o SVG ao centro
+                        center: true,
+                        minZoom: 0.1,              // Permite dar bastante zoom-out
+                        maxZoom: 20                // Permite dar bastante zoom-in
+                    });
+                    
+                    // Recalcula o tamanho ao redimensionar a janela
+                    window.addEventListener('resize', () => {
+                        if (window.panZoomInstance) {
+                            
+                        }
+                    });
+                }, 300); // 0ms timeout
+            }
+        } catch (e) {
+            el.innerHTML = '<p class="text-red-400 p-4">Erro ao renderizar o diagrama: ' + e.message + '</p>';
+            console.error(e);
+        }
+    }
+
+    // 6. Adiciona o listener para o Alpine.js
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inicializa na carga da página (caso o código já exista)
+        // Usamos um pequeno timeout para garantir que o Alpine também já carregou
+        setTimeout(() => {
+            const el = document.querySelector('[x-data]');
+            if (el && el.__x) {
+                window.renderMermaid(el.__x.data.codigo);
+            }
+        }, 150);
+    });
+</script>
+@endpush

@@ -28,18 +28,6 @@ class FaseResource extends Resource
             Forms\Components\TextInput::make('nome')
                 ->required()
                 ->label('Nome'),
-
-            Forms\Components\DatePicker::make('data')
-                ->required()
-                ->label('Data'),
-
-            Forms\Components\Select::make('atividades')
-                ->relationship('atividades', 'nome', function (Builder $query) {
-                    return $query->where('user_id', Filament::auth()->id());
-                })
-                ->multiple()
-                ->preload()
-                ->label('Atividades'),
         ]);
     }
 
@@ -51,13 +39,6 @@ class FaseResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('data')
-                    ->date()
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('atividades_count')
-                    ->counts('atividades')
-                    ->label('Nº de Atividades'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

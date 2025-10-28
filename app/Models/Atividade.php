@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Atividade extends Model
 {
@@ -12,14 +13,13 @@ class Atividade extends Model
     protected $fillable = [
         'nome',
         'descricao',
-        'tarefa_id',
         'fase_id',
         'user_id', // 🔹 adicionado
     ];
 
-    public function tarefa()
+    public function tarefas(): BelongsToMany
     {
-        return $this->belongsTo(Tarefa::class);
+        return $this->belongsToMany(Tarefa::class, 'atividade_tarefa')->withTimestamps();
     }
 
     public function fase()

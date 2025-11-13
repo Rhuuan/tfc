@@ -112,6 +112,15 @@
                         </h2>
                         <p class="text-base text-gray-600 mb-4">Abaixo está o fluxo de trabalho otimizado e a justificativa detalhada sugerida pela IA.</p>
                     </div>
+                    <div class="flex gap-3 mt-2">
+                        <x-filament::button
+                            wire:click="gerarRecomendacao"
+                            color="primary"
+                            icon="heroicon-o-arrow-path"
+                            wire:loading.attr="disabled"
+                            wire:target="gerarRecomendacao"
+                        >Gerar nova recomendação</x-filament::button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-10">

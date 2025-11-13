@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Projeto extends Model
@@ -35,5 +36,10 @@ class Projeto extends Model
     public function metodoFerramentas(): BelongsToMany
     {
         return $this->belongsToMany(MetodoFerramenta::class, 'metodo_ferramenta_projeto');
+    }
+
+    public function recomendacoes(): HasMany
+    {
+        return $this->hasMany(Recomendacao::class);
     }
 }

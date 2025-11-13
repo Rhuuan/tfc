@@ -4,10 +4,12 @@ namespace App\Filament\Resources\ProjetoResource\Pages;
 
 use App\Filament\Resources\ProjetoResource;
 use App\Models\Projeto;
+use App\Models\Recomendacao;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -48,6 +50,22 @@ class GerarRecomendacaoProjeto extends Page
 
             $this->dadosProjeto = $projeto->toArray();
             $this->contexto = json_encode($this->dadosProjeto, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            // Se veio indicado para mostrar a última recomendação salva,
+            // carregamos a mais recente e setamos os campos para renderizar o Estado 3 imediatamente
+            $mostrarSalva = (bool) request()->boolean('mostrarSalva');
+            if ($mostrarSalva) {
+                $ultima = Recomendacao::where('projeto_id', $this->record)
+                    ->latest('id')
+                    ->first();
+
+                if ($ultima) {
+                    $this->codigoMermaid = $ultima->codigo_mermaid;
+                    $this->justificacao = $ultima->justificacao;
+                    // Qualquer valor não-nulo ativa o Estado 3 na view; usamos a resposta bruta, se houver
+                    $this->resposta = $ultima->resposta_bruta ?? 'Recomendação carregada do histórico.';
+                }
+            }
         } catch (Exception $e) {
             Notification::make()
                 ->title('Projeto não carregado')
@@ -211,6 +229,44 @@ EOT;
             \Illuminate\Support\Facades\Log::warning('Falha ao extrair justificação. Resposta da IA: ' . $this->resposta);
         }
 
+
+        // Persistir no banco a recomendação vinculada ao projeto
+        try {
+            $codigoMermaid = trim((string) ($this->codigoMermaid ?? ''));
+            if ($codigoMermaid === '') {
+                $codigoMermaid = 'graph TD; A[Erro]; A-->B[Diagrama não encontrado na resposta da IA];';
+            }
+
+            $justificacao = trim((string) ($this->justificacao ?? ''));
+
+            // Salva via relação do projeto para garantir o vínculo correto
+            $projeto = Projeto::find($this->record);
+            if ($projeto) {
+                $userId = \Filament\Facades\Filament::auth()->id() ?? Auth::id() ?? $projeto->user_id;
+                $projeto->recomendacoes()->create([
+                    'user_id'        => $userId,
+                    'codigo_mermaid' => $codigoMermaid,
+                    'justificacao'   => $justificacao !== '' ? $justificacao : null,
+                    'resposta_bruta' => $this->resposta,
+                ]);
+            } else {
+                $userId = \Filament\Facades\Filament::auth()->id() ?? Auth::id();
+                Recomendacao::create([
+                    'projeto_id'     => $this->record,
+                    'user_id'        => $userId,
+                    'codigo_mermaid' => $codigoMermaid,
+                    'justificacao'   => $justificacao !== '' ? $justificacao : null,
+                    'resposta_bruta' => $this->resposta,
+                ]);
+            }
+        } catch (\Throwable $t) {
+            Log::error('Falha ao salvar recomendação: ' . $t->getMessage(), [
+                'projeto_id' => $this->record,
+                'codigo_mermaid_len' => isset($codigoMermaid) ? strlen($codigoMermaid) : null,
+                'justificacao_len'   => isset($justificacao) ? strlen($justificacao) : null,
+                'has_projeto'        => isset($projeto) && (bool) $projeto,
+            ]);
+        }
 
         Notification::make()
             ->title('Recomendação gerada com sucesso')

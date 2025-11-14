@@ -100,8 +100,9 @@
                     }
                 }"
                 {{-- E mandamos ele "assistir" a variável 'codigo' --}}
-                x-init="$nextTick(() => window.renderMermaid(codigo))"
-                x-effect="window.renderMermaid(codigo)"
+                x-init="$nextTick(() => window.deferRenderMermaid(codigo))"
+                x-effect="window.deferRenderMermaid(codigo)"
+                x-on:re-render-mermaid.window="window.deferRenderMermaid(codigo)"
                 data-mermaid-container
             >
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -113,6 +114,20 @@
                         <p class="text-base text-gray-600 mb-4">Abaixo está o fluxo de trabalho otimizado e a justificativa detalhada sugerida pela IA.</p>
                     </div>
                     <div class="flex gap-3 mt-2">
+                        <x-filament::button
+                            wire:click="darFeedback('like')"
+                            color="{{ ($userFeedback ?? null) === 'like' ? 'success' : 'gray' }}"
+                            icon="heroicon-o-hand-thumb-up"
+                            wire:loading.attr="disabled"
+                            title="Marcar como útil"
+                        >Curtir</x-filament::button>
+                        <x-filament::button
+                            wire:click="darFeedback('dislike')"
+                            color="{{ ($userFeedback ?? null) === 'dislike' ? 'danger' : 'gray' }}"
+                            icon="heroicon-o-hand-thumb-down"
+                            wire:loading.attr="disabled"
+                            title="Marcar como não útil"
+                        >Não curtir</x-filament::button>
                         <x-filament::button
                             wire:click="gerarRecomendacao"
                             color="primary"
@@ -210,6 +225,19 @@
 </x-filament::page>
 
 @push('scripts')
+<script>
+// Renderização adiada para evitar condição de corrida entre Alpine e carregamento do módulo mermaid
+window.deferRenderMermaid = function(code){
+    const attempt = () => {
+        if (typeof window.renderMermaid === 'function') {
+            window.renderMermaid(code);
+        } else {
+            setTimeout(attempt, 150);
+        }
+    };
+    attempt();
+};
+</script>
 {{-- Carrega a biblioteca de Pan/Zoom PRIMEIRO --}}
 <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
 
@@ -297,7 +325,7 @@
                         setTimeout(() => {
                             const el = document.querySelector('[data-mermaid-container]');
                             if (el && el.__x) {
-                                window.renderMermaid(el.__x.data.codigo);
+                                window.deferRenderMermaid(el.__x.data.codigo);
                             }
                         }, 150);
     });

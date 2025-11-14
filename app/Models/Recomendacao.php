@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Recomendacao extends Model
 {
@@ -28,5 +29,13 @@ class Recomendacao extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Feedbacks dados pelos usuários para esta recomendação
+     */
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(RecomendacaoFeedback::class, 'recomendacao_id');
     }
 }

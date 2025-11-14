@@ -8,8 +8,8 @@
                 </div>
             </x-slot>
 
-            <div class="space-y-8"
-                 x-data="{
+          <div class="space-y-8"
+              x-data="{
                     codigo: @js($this->codigoMermaid),
                     copiado: false,
                     async copiarCodigo() {
@@ -18,8 +18,8 @@
                         setTimeout(() => this.copiado = false, 2000);
                     }
                  }"
-                 x-init="$nextTick(() => window.renderMermaidView(codigo))"
-                 x-effect="window.renderMermaidView(codigo)"
+              x-init="$nextTick(() => window.deferRenderMermaidView(codigo))"
+              x-effect="window.deferRenderMermaidView(codigo)"
             >
                 {{-- Diagrama --}}
                 <div class="flex flex-col gap-6">
@@ -62,6 +62,19 @@
         </x-filament::section>
 
         @push('scripts')
+        <script>
+            // Função de renderização adiada: garante que mesmo que Alpine rode antes do módulo mermaid carregar, o diagrama apareça.
+            window.deferRenderMermaidView = function(code){
+                const attempt = () => {
+                    if (typeof window.renderMermaidView === 'function') {
+                        window.renderMermaidView(code);
+                    } else {
+                        setTimeout(attempt, 150);
+                    }
+                };
+                attempt();
+            };
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
         <script type="module">
             import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
@@ -90,6 +103,8 @@
                     console.error(e);
                 }
             }
+            // Auto-render na carga do script caso já haja código.
+            // Removido auto-render direto; x-init já chama deferRenderMermaidView que aguardará mermaid carregar.
         </script>
         @endpush
     @endif
